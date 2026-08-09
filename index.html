@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>Shadow Blade — 2D Adventure</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="gameWrap">
+    <canvas id="game"></canvas>
+    <div id="hud">
+      <div class="topbar">
+        <div class="panel"><span>❤️</span><div class="bar"><i id="hp"></i></div></div>
+        <div class="panel bossPanel hidden" id="bossPanel"><b>👹 BOSS</b><div class="bar boss"><i id="bossHp"></i></div></div>
+        <div class="coins">🪙 <b id="coins">0</b></div>
+      </div>
+      <div class="stage">TẦNG <b id="stage">1</b> · <span id="status">Khám phá</span></div>
+    </div>
+    <div id="message"></div>
+    <div id="touch">
+      <div class="left">
+        <button data-key="left">◀</button>
+        <button data-key="right">▶</button>
+      </div>
+      <div class="right">
+        <button data-key="jump">⬆</button>
+        <button data-key="attack">⚔</button>
+      </div>
+    </div>
+    <div id="start">
+      <div class="card">
+        <div class="logo">⚔</div>
+        <h1>SHADOW BLADE</h1>
+        <p>Phiêu lưu 2D · nhiều tầng · boss</p>
+        <button id="play">BẮT ĐẦU</button>
+        <small>Điện thoại: nút ảo · PC: A/D hoặc ←/→, Space, J</small>
+      </div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
