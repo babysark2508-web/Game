@@ -1,43 +1,160 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <title>Shadow Blade — 2D Adventure</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Kiếm Hành - Demo 1</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;color:#fff;font-family:system-ui,sans-serif}
+#game{display:block;width:100vw;height:100vh;touch-action:none}
+#ui{position:fixed;inset:0;pointer-events:none}
+#hud{position:absolute;left:10px;top:10px;background:#0009;padding:8px 10px;border:1px solid #ffffff33;border-radius:10px;font-size:13px}
+.bar{width:150px;height:10px;background:#333;border-radius:6px;overflow:hidden;margin-top:4px}.fill{height:100%}
+#hp{background:#e44}.xp{background:#5bc0ff}
+#msg{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#0009;padding:7px 12px;border-radius:12px}
+.controls{position:absolute;bottom:18px;left:18px;display:flex;gap:12px;pointer-events:auto}
+.right{position:absolute;bottom:18px;right:18px;display:flex;gap:12px;pointer-events:auto}
+button{width:64px;height:64px;border:1px solid #fff5;border-radius:50%;background:#222b;color:#fff;font-size:25px;font-weight:800}
+button:active{transform:scale(.94);background:#555b}
+#start{position:absolute;inset:0;background:linear-gradient(#10233eee,#05070eee);display:flex;align-items:center;justify-content:center;pointer-events:auto}
+.card{max-width:360px;margin:20px;padding:24px;border:1px solid #fff3;border-radius:18px;background:#111d;text-align:center;box-shadow:0 15px 50px #000}
+.card h1{margin:0 0 8px;font-size:30px}.card p{opacity:.8;line-height:1.5}
+#play{width:auto;height:auto;border-radius:12px;padding:13px 25px;font-size:18px;background:#9b6b35}
+.hidden{display:none!important}
+</style>
 </head>
 <body>
-  <div id="gameWrap">
-    <canvas id="game"></canvas>
-    <div id="hud">
-      <div class="topbar">
-        <div class="panel"><span>❤️</span><div class="bar"><i id="hp"></i></div></div>
-        <div class="panel bossPanel hidden" id="bossPanel"><b>👹 BOSS</b><div class="bar boss"><i id="bossHp"></i></div></div>
-        <div class="coins">🪙 <b id="coins">0</b></div>
-      </div>
-      <div class="stage">TẦNG <b id="stage">1</b> · <span id="status">Khám phá</span></div>
-    </div>
-    <div id="message"></div>
-    <div id="touch">
-      <div class="left">
-        <button data-key="left">◀</button>
-        <button data-key="right">▶</button>
-      </div>
-      <div class="right">
-        <button data-key="jump">⬆</button>
-        <button data-key="attack">⚔</button>
-      </div>
-    </div>
-    <div id="start">
-      <div class="card">
-        <div class="logo">⚔</div>
-        <h1>SHADOW BLADE</h1>
-        <p>Phiêu lưu 2D · nhiều tầng · boss</p>
-        <button id="play">BẮT ĐẦU</button>
-        <small>Điện thoại: nút ảo · PC: A/D hoặc ←/→, Space, J</small>
-      </div>
+<canvas id="game"></canvas>
+<div id="ui">
+  <div id="hud">
+    <b>⚔️ KIẾM HÀNH — DEMO 1</b><br>
+    Lv.<span id="lv">1</span> · HP <span id="hpText">100/100</span>
+    <div class="bar"><div id="hp" class="fill" style="width:100%"></div></div>
+    EXP <span id="xpText">0/100</span>
+    <div class="bar"><div id="xp" class="fill" style="width:0%"></div></div>
+    💰 <span id="gold">0</span>
+  </div>
+  <div id="msg">Hãy tiêu diệt quái!</div>
+  <div class="controls">
+    <button id="left">◀</button><button id="rightBtn">▶</button>
+  </div>
+  <div class="right">
+    <button id="jump">⬆</button><button id="attack">⚔</button>
+  </div>
+  <div id="start">
+    <div class="card">
+      <h1>Kiếm Hành</h1>
+      <p>Demo 1 — game nhập vai 2D lấy cảm hứng từ phong cách kiếm hiệp mobile.</p>
+      <p>Di chuyển, nhảy và chém quái. Hạ đủ quái để lên cấp và gặp boss.</p>
+      <button id="play">BẮT ĐẦU CHƠI</button>
     </div>
   </div>
-  <script src="game.js"></script>
-</body>
-</html>
+</div>
+<script>
+const c=document.getElementById('game'),ctx=c.getContext('2d');
+let W,H,dpr,started=false,last=0,keys={},attackTimer=0,flash=0;
+function resize(){dpr=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',resize);resize();
+
+const p={x:150,y:0,w:34,h:52,vx:0,vy:0,onGround:false,face:1,hp:100,maxhp:100,lv:1,xp:0,gold:0};
+let camera=0, world=2600, kills=0, boss=null;
+const platforms=[
+{x:0,y:0,w:2600,h:80},{x:350,y:H-190,w:260,h:18},{x:760,y:H-270,w:300,h:18},
+{x:1250,y:H-185,w:260,h:18},{x:1660,y:H-290,w:330,h:18},{x:2160,y:H-190,w:280,h:18}
+];
+let mobs=[
+{x:520,y:0,w:34,h:42,hp:35,max:35,alive:true,v:35},
+{x:900,y:0,w:34,h:42,hp:45,max:45,alive:true,v:30},
+{x:1360,y:0,w:34,h:42,hp:55,max:55,alive:true,v:35},
+{x:1800,y:0,w:34,h:42,hp:65,max:65,alive:true,v:28},
+{x:2240,y:0,w:38,h:48,hp:80,max:80,alive:true,v:24}
+];
+
+function groundY(x,y,vy){
+ let gy=H-80;
+ for(const q of platforms.slice(1)){
+   if(x+30>q.x&&x<q.x+q.w&&y+52<=q.y+8&&vy>=0) gy=Math.min(gy,q.y);
+ }
+ return gy;
+}
+function resetMobs(){
+ mobs.forEach(m=>{m.alive=true;m.hp=m.max;m.y=H-122});
+}
+function say(t){document.getElementById('msg').textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>document.getElementById('msg').textContent='',1800)}
+function hit(){
+ if(!started||attackTimer>0)return;
+ attackTimer=.35; flash=.12;
+ const range=78;
+ for(const m of mobs){
+   if(!m.alive)continue;
+   if(Math.abs((m.x+17)-(p.x+p.w/2))<range && Math.sign((m.x+17)-(p.x+p.w/2))===p.face){
+     m.hp-=25+p.lv*4;
+     if(m.hp<=0){m.alive=false;kills++;p.xp+=30;p.gold+=8; if(kills===5){boss={x:2470,y:H-128,w:75,h:80,hp:400,max:400,alive:true};say('👹 BOSS XUẤT HIỆN!');} else say('Hạ quái! +30 EXP');}
+   }
+ }
+ if(boss&&boss.alive&&Math.abs((boss.x+38)-(p.x+p.w/2))<100){
+   boss.hp-=30+p.lv*4;
+   if(boss.hp<=0){boss.alive=false;p.xp+=150;p.gold+=100;say('🏆 ĐÃ HẠ BOSS! Demo 1 hoàn thành!');}
+ }
+}
+function levelCheck(){while(p.xp>=p.lv*100){p.xp-=p.lv*100;p.lv++;p.maxhp+=20;p.hp=p.maxhp;say('✨ LÊN CẤP '+p.lv+'!')}}
+function update(dt){
+ if(!started)return;
+ let dir=(keys.left?-1:0)+(keys.right?1:0);
+ p.vx += (dir*700-p.vx)*Math.min(1,dt*9); if(!dir)p.vx*=Math.pow(.02,dt);
+ if(dir)p.face=dir;
+ p.vy+=1500*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+ p.x=Math.max(0,Math.min(world-p.w,p.x));
+ let gy=groundY(p.x,p.y,p.vy);
+ if(p.y+p.h>=gy){p.y=gy-p.h;p.vy=0;p.onGround=true}else p.onGround=false;
+ attackTimer=Math.max(0,attackTimer-dt);flash=Math.max(0,flash-dt);
+ for(const m of mobs)if(m.alive){
+   if(m.y===0)m.y=H-122;
+   const dx=p.x-m.x;
+   if(Math.abs(dx)<280)m.x+=Math.sign(dx)*m.v*dt;
+   m.x=Math.max(0,Math.min(world-m.w,m.x));
+   if(Math.abs(dx)<42&&Math.random()<dt*.9){p.hp-=8;if(p.hp<=0){p.hp=p.maxhp;p.x=120;say('Bạn đã gục! Hồi sinh...')}}
+ }
+ if(boss&&boss.alive){
+   boss.x+=Math.sign(p.x-boss.x)*18*dt;
+   if(Math.abs(p.x-boss.x)<75&&Math.random()<dt*.7){p.hp-=15;if(p.hp<=0){p.hp=p.maxhp;p.x=120;say('Bạn đã gục! Hồi sinh...')}}
+ }
+ levelCheck();camera+=(p.x-W*.35-camera)*Math.min(1,dt*5);
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#162c4d');sky.addColorStop(1,'#10151f');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ // mountains
+ ctx.fillStyle='#203957';for(let i=0;i<12;i++){let x=i*300-camera*.25;ctx.beginPath();ctx.moveTo(x,H-80);ctx.lineTo(x+150,H-310-(i%3)*40);ctx.lineTo(x+300,H-80);ctx.fill()}
+ ctx.save();ctx.translate(-camera,0);
+ for(const q of platforms){ctx.fillStyle='#493b2d';ctx.fillRect(q.x,q.y,q.w,q.h);ctx.fillStyle='#6d8c4a';ctx.fillRect(q.x,q.y,q.w,7)}
+ // portal
+ ctx.fillStyle='#7b4fd6';ctx.beginPath();ctx.ellipse(2580,H-125,38,55,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff8';ctx.font='14px system-ui';ctx.fillText('BOSS',2548,H-190);
+ for(const m of mobs)if(m.alive){
+   ctx.fillStyle='#a44747';ctx.fillRect(m.x,m.y,m.w,m.h);ctx.fillStyle='#ffd4b8';ctx.beginPath();ctx.arc(m.x+17,m.y+10,11,0,7);ctx.fill();
+   ctx.fillStyle='#111';ctx.fillRect(m.x,m.y-10,m.w,5);ctx.fillStyle='#e55';ctx.fillRect(m.x,m.y-10,m.w*(m.hp/m.max),5)
+ }
+ if(boss&&boss.alive){
+   ctx.fillStyle='#7037a6';ctx.fillRect(boss.x,boss.y,boss.w,boss.h);ctx.fillStyle='#f0c0d0';ctx.beginPath();ctx.arc(boss.x+38,boss.y+20,20,0,7);ctx.fill();
+   ctx.fillStyle='#111';ctx.fillRect(boss.x,boss.y-13,boss.w,7);ctx.fillStyle='#f44';ctx.fillRect(boss.x,boss.y-13,boss.w*(boss.hp/boss.max),7)
+ }
+ // player
+ ctx.fillStyle=flash?'#fff':'#2f79c9';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle='#f1c7a5';ctx.beginPath();ctx.arc(p.x+17,p.y+12,12,0,7);ctx.fill();
+ ctx.fillStyle='#e8e8e8';ctx.fillRect(p.x+(p.face>0?28:-38),p.y+20,40,5);
+ if(attackTimer>0){ctx.strokeStyle='#fff';ctx.lineWidth=6;ctx.beginPath();let sx=p.x+17,sy=p.y+26;ctx.arc(sx,sy,p.face>0?52:52,p.face>0?-1.1:2.0,p.face>0?1.1:4.2);ctx.stroke()}
+ ctx.restore();
+ document.getElementById('lv').textContent=p.lv;document.getElementById('hpText').textContent=Math.max(0,p.hp|0)+'/'+p.maxhp;
+ document.getElementById('gold').textContent=p.gold;document.getElementById('xpText').textContent=p.xp+'/'+(p.lv*100);
+ document.getElementById('hp').style.width=(p.hp/p.maxhp*100)+'%';document.getElementById('xp').style.width=(p.xp/(p.lv*100)*100)+'%';
+}
+function loop(t){let dt=Math.min(.033,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}
+function bind(id,prop){const b=document.getElementById(id);b.onpointerdown=e=>{e.preventDefault();keys[prop]=true};b.onpointerup=b.onpointercancel=b.onpointerleave=e=>{keys[prop]=false}}
+bind('left','left');bind('rightBtn','right');
+document.getElementById('jump').onpointerdown=()=>{if(p.onGround){p.vy=-650;p.onGround=false}};
+document.getElementById('attack').onpointerdown=hit;
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;if(e.key==='ArrowRight'||e.key==='d')keys.right=true;if(e.key==='ArrowUp'||e.key==='w'||e.key===' ')if(p.onGround)p.vy=-650;if(e.key==='j'||e.key==='Enter')hit()});
+addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;if(e.key==='ArrowRight'||e.key==='d')keys.right=false});
+document.getElementById('play').onclick=()=>{started=true;document.getElementById('start').classList.add('hidden');say('Di chuyển và chém quái!')};
+resetMobs();p.y=H-132;requestAnimationFrame(loop);
+</script>
+</body></html>
