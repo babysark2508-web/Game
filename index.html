@@ -1,160 +1,51 @@
-<!doctype html>
-<html lang="vi">
-<head>
-<meta charset="utf-8">
+<!doctype html><html lang="vi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Kiếm Hành - Demo 1</title>
+<title>Kiếm Hiệp 2D</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;color:#fff;font-family:system-ui,sans-serif}
-#game{display:block;width:100vw;height:100vh;touch-action:none}
-#ui{position:fixed;inset:0;pointer-events:none}
-#hud{position:absolute;left:10px;top:10px;background:#0009;padding:8px 10px;border:1px solid #ffffff33;border-radius:10px;font-size:13px}
-.bar{width:150px;height:10px;background:#333;border-radius:6px;overflow:hidden;margin-top:4px}.fill{height:100%}
-#hp{background:#e44}.xp{background:#5bc0ff}
-#msg{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#0009;padding:7px 12px;border-radius:12px}
-.controls{position:absolute;bottom:18px;left:18px;display:flex;gap:12px;pointer-events:auto}
-.right{position:absolute;bottom:18px;right:18px;display:flex;gap:12px;pointer-events:auto}
-button{width:64px;height:64px;border:1px solid #fff5;border-radius:50%;background:#222b;color:#fff;font-size:25px;font-weight:800}
-button:active{transform:scale(.94);background:#555b}
-#start{position:absolute;inset:0;background:linear-gradient(#10233eee,#05070eee);display:flex;align-items:center;justify-content:center;pointer-events:auto}
-.card{max-width:360px;margin:20px;padding:24px;border:1px solid #fff3;border-radius:18px;background:#111d;text-align:center;box-shadow:0 15px 50px #000}
-.card h1{margin:0 0 8px;font-size:30px}.card p{opacity:.8;line-height:1.5}
-#play{width:auto;height:auto;border-radius:12px;padding:13px 25px;font-size:18px;background:#9b6b35}
-.hidden{display:none!important}
-</style>
-</head>
-<body>
-<canvas id="game"></canvas>
-<div id="ui">
-  <div id="hud">
-    <b>⚔️ KIẾM HÀNH — DEMO 1</b><br>
-    Lv.<span id="lv">1</span> · HP <span id="hpText">100/100</span>
-    <div class="bar"><div id="hp" class="fill" style="width:100%"></div></div>
-    EXP <span id="xpText">0/100</span>
-    <div class="bar"><div id="xp" class="fill" style="width:0%"></div></div>
-    💰 <span id="gold">0</span>
-  </div>
-  <div id="msg">Hãy tiêu diệt quái!</div>
-  <div class="controls">
-    <button id="left">◀</button><button id="rightBtn">▶</button>
-  </div>
-  <div class="right">
-    <button id="jump">⬆</button><button id="attack">⚔</button>
-  </div>
-  <div id="start">
-    <div class="card">
-      <h1>Kiếm Hành</h1>
-      <p>Demo 1 — game nhập vai 2D lấy cảm hứng từ phong cách kiếm hiệp mobile.</p>
-      <p>Di chuyển, nhảy và chém quái. Hạ đủ quái để lên cấp và gặp boss.</p>
-      <button id="play">BẮT ĐẦU CHƠI</button>
-    </div>
-  </div>
-</div>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#101522;font-family:Arial;touch-action:none}
+canvas{width:100vw;height:100vh;image-rendering:pixelated}.hud{position:fixed;top:8px;left:8px;color:white;font-weight:bold;text-shadow:2px 2px #000;z-index:2}
+.bar{width:155px;height:12px;background:#444;border:2px solid #222;margin:3px 0}.fill{height:100%}
+#hp{background:#e33}#mp{background:#2680e8}#xp{background:#e7bd36}
+#msg{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#0009;color:#ffe08a;padding:6px 12px;border-radius:10px;z-index:3;font-weight:bold}
+#controls{position:fixed;bottom:14px;left:0;right:0;display:flex;justify-content:space-between;padding:0 12px;z-index:4}
+.group{display:flex;gap:7px}button{width:55px;height:55px;border:2px solid #8792a6;border-radius:14px;background:#202938e8;color:white;font-size:20px;font-weight:bold;box-shadow:0 4px #080b10}
+button:active{transform:translateY(3px);box-shadow:0 1px #080b10}.skill{font-size:11px}
+#menu{position:fixed;right:8px;top:8px;z-index:5}.panel{display:none;position:fixed;z-index:8;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,430px);background:#121a28f5;color:white;padding:18px;border:2px solid #8c98aa;border-radius:18px}
+.panel h2{margin:0 0 10px}.item{padding:9px;margin:6px 0;background:#263246;border-radius:9px}.wide{width:100%;margin-top:8px}
+#start{position:fixed;inset:0;z-index:10;background:#101827f5;display:flex;align-items:center;justify-content:center;color:white;text-align:center}
+.card{width:min(92vw,430px);padding:26px;border:2px solid #8995a8;border-radius:20px;background:#151f30}.card h1{font-size:29px}.card p{line-height:1.5;color:#ccd5e3}.play{width:100%;height:58px;font-size:18px}
+</style></head><body>
+<canvas id="c" width="960" height="540"></canvas>
+<div class="hud"><div id="st">Lv 1 • Kiếm khách • 💰 0</div><div class="bar"><div id="hp" class="fill"></div></div><div class="bar"><div id="mp" class="fill"></div></div><div class="bar"><div id="xp" class="fill"></div></div></div>
+<div id="msg">Làng Tân Thủ</div><div id="menu"><button onclick="panel.style.display='block'">☰</button></div>
+<div id="controls"><div class="group"><button data-k="left">◀</button><button data-k="jump">▲</button><button data-k="right">▶</button></div><div class="group"><button class="skill" data-s="atk">⚔️<br>Đánh</button><button class="skill" data-s="dash">➤<br>Lướt</button><button class="skill" data-s="wave">✦<br>Kiếm khí</button></div></div>
+<div id="panel" class="panel"><h2>🎒 Nhân vật</h2><div class="item">Cấp: <b id="plv">1</b></div><div class="item">Vàng: <b id="gold">0</b></div><div class="item">Sức mạnh: <b id="atk">12</b></div><h2>Trang bị</h2><div class="item">⚔️ Kiếm Tân Thủ (+2 ATK)</div><div class="item">🧪 Bình HP × <span id="pots">3</span></div><button class="wide" onclick="save()">💾 LƯU GAME</button><button class="wide" onclick="panel.style.display='none'">ĐÓNG</button></div>
+<div id="start"><div class="card"><h1>⚔️ KIẾM HIỆP 2D</h1><p>Phiên bản làm lại theo phong cách RPG kiếm hiệp 2D mobile: làng, NPC/nhiệm vụ, quái, kỹ năng, map nhiều khu và Boss.</p><button class="play" onclick="start.style.display='none';say('Hãy đi về phía trước!')">BẮT ĐẦU CHƠI</button><p>Mobile: dùng nút màn hình. PC: A/D, W, J/K/L.</p></div></div>
 <script>
-const c=document.getElementById('game'),ctx=c.getContext('2d');
-let W,H,dpr,started=false,last=0,keys={},attackTimer=0,flash=0;
-function resize(){dpr=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
-addEventListener('resize',resize);resize();
-
-const p={x:150,y:0,w:34,h:52,vx:0,vy:0,onGround:false,face:1,hp:100,maxhp:100,lv:1,xp:0,gold:0};
-let camera=0, world=2600, kills=0, boss=null;
-const platforms=[
-{x:0,y:0,w:2600,h:80},{x:350,y:H-190,w:260,h:18},{x:760,y:H-270,w:300,h:18},
-{x:1250,y:H-185,w:260,h:18},{x:1660,y:H-290,w:330,h:18},{x:2160,y:H-190,w:280,h:18}
-];
-let mobs=[
-{x:520,y:0,w:34,h:42,hp:35,max:35,alive:true,v:35},
-{x:900,y:0,w:34,h:42,hp:45,max:45,alive:true,v:30},
-{x:1360,y:0,w:34,h:42,hp:55,max:55,alive:true,v:35},
-{x:1800,y:0,w:34,h:42,hp:65,max:65,alive:true,v:28},
-{x:2240,y:0,w:38,h:48,hp:80,max:80,alive:true,v:24}
-];
-
-function groundY(x,y,vy){
- let gy=H-80;
- for(const q of platforms.slice(1)){
-   if(x+30>q.x&&x<q.x+q.w&&y+52<=q.y+8&&vy>=0) gy=Math.min(gy,q.y);
- }
- return gy;
-}
-function resetMobs(){
- mobs.forEach(m=>{m.alive=true;m.hp=m.max;m.y=H-122});
-}
-function say(t){document.getElementById('msg').textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>document.getElementById('msg').textContent='',1800)}
-function hit(){
- if(!started||attackTimer>0)return;
- attackTimer=.35; flash=.12;
- const range=78;
- for(const m of mobs){
-   if(!m.alive)continue;
-   if(Math.abs((m.x+17)-(p.x+p.w/2))<range && Math.sign((m.x+17)-(p.x+p.w/2))===p.face){
-     m.hp-=25+p.lv*4;
-     if(m.hp<=0){m.alive=false;kills++;p.xp+=30;p.gold+=8; if(kills===5){boss={x:2470,y:H-128,w:75,h:80,hp:400,max:400,alive:true};say('👹 BOSS XUẤT HIỆN!');} else say('Hạ quái! +30 EXP');}
-   }
- }
- if(boss&&boss.alive&&Math.abs((boss.x+38)-(p.x+p.w/2))<100){
-   boss.hp-=30+p.lv*4;
-   if(boss.hp<=0){boss.alive=false;p.xp+=150;p.gold+=100;say('🏆 ĐÃ HẠ BOSS! Demo 1 hoàn thành!');}
- }
-}
-function levelCheck(){while(p.xp>=p.lv*100){p.xp-=p.lv*100;p.lv++;p.maxhp+=20;p.hp=p.maxhp;say('✨ LÊN CẤP '+p.lv+'!')}}
-function update(dt){
- if(!started)return;
- let dir=(keys.left?-1:0)+(keys.right?1:0);
- p.vx += (dir*700-p.vx)*Math.min(1,dt*9); if(!dir)p.vx*=Math.pow(.02,dt);
- if(dir)p.face=dir;
- p.vy+=1500*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
- p.x=Math.max(0,Math.min(world-p.w,p.x));
- let gy=groundY(p.x,p.y,p.vy);
- if(p.y+p.h>=gy){p.y=gy-p.h;p.vy=0;p.onGround=true}else p.onGround=false;
- attackTimer=Math.max(0,attackTimer-dt);flash=Math.max(0,flash-dt);
- for(const m of mobs)if(m.alive){
-   if(m.y===0)m.y=H-122;
-   const dx=p.x-m.x;
-   if(Math.abs(dx)<280)m.x+=Math.sign(dx)*m.v*dt;
-   m.x=Math.max(0,Math.min(world-m.w,m.x));
-   if(Math.abs(dx)<42&&Math.random()<dt*.9){p.hp-=8;if(p.hp<=0){p.hp=p.maxhp;p.x=120;say('Bạn đã gục! Hồi sinh...')}}
- }
- if(boss&&boss.alive){
-   boss.x+=Math.sign(p.x-boss.x)*18*dt;
-   if(Math.abs(p.x-boss.x)<75&&Math.random()<dt*.7){p.hp-=15;if(p.hp<=0){p.hp=p.maxhp;p.x=120;say('Bạn đã gục! Hồi sinh...')}}
- }
- levelCheck();camera+=(p.x-W*.35-camera)*Math.min(1,dt*5);
-}
-function draw(){
- ctx.clearRect(0,0,W,H);
- const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#162c4d');sky.addColorStop(1,'#10151f');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
- // mountains
- ctx.fillStyle='#203957';for(let i=0;i<12;i++){let x=i*300-camera*.25;ctx.beginPath();ctx.moveTo(x,H-80);ctx.lineTo(x+150,H-310-(i%3)*40);ctx.lineTo(x+300,H-80);ctx.fill()}
- ctx.save();ctx.translate(-camera,0);
- for(const q of platforms){ctx.fillStyle='#493b2d';ctx.fillRect(q.x,q.y,q.w,q.h);ctx.fillStyle='#6d8c4a';ctx.fillRect(q.x,q.y,q.w,7)}
- // portal
- ctx.fillStyle='#7b4fd6';ctx.beginPath();ctx.ellipse(2580,H-125,38,55,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff8';ctx.font='14px system-ui';ctx.fillText('BOSS',2548,H-190);
- for(const m of mobs)if(m.alive){
-   ctx.fillStyle='#a44747';ctx.fillRect(m.x,m.y,m.w,m.h);ctx.fillStyle='#ffd4b8';ctx.beginPath();ctx.arc(m.x+17,m.y+10,11,0,7);ctx.fill();
-   ctx.fillStyle='#111';ctx.fillRect(m.x,m.y-10,m.w,5);ctx.fillStyle='#e55';ctx.fillRect(m.x,m.y-10,m.w*(m.hp/m.max),5)
- }
- if(boss&&boss.alive){
-   ctx.fillStyle='#7037a6';ctx.fillRect(boss.x,boss.y,boss.w,boss.h);ctx.fillStyle='#f0c0d0';ctx.beginPath();ctx.arc(boss.x+38,boss.y+20,20,0,7);ctx.fill();
-   ctx.fillStyle='#111';ctx.fillRect(boss.x,boss.y-13,boss.w,7);ctx.fillStyle='#f44';ctx.fillRect(boss.x,boss.y-13,boss.w*(boss.hp/boss.max),7)
- }
- // player
- ctx.fillStyle=flash?'#fff':'#2f79c9';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle='#f1c7a5';ctx.beginPath();ctx.arc(p.x+17,p.y+12,12,0,7);ctx.fill();
- ctx.fillStyle='#e8e8e8';ctx.fillRect(p.x+(p.face>0?28:-38),p.y+20,40,5);
- if(attackTimer>0){ctx.strokeStyle='#fff';ctx.lineWidth=6;ctx.beginPath();let sx=p.x+17,sy=p.y+26;ctx.arc(sx,sy,p.face>0?52:52,p.face>0?-1.1:2.0,p.face>0?1.1:4.2);ctx.stroke()}
- ctx.restore();
- document.getElementById('lv').textContent=p.lv;document.getElementById('hpText').textContent=Math.max(0,p.hp|0)+'/'+p.maxhp;
- document.getElementById('gold').textContent=p.gold;document.getElementById('xpText').textContent=p.xp+'/'+(p.lv*100);
- document.getElementById('hp').style.width=(p.hp/p.maxhp*100)+'%';document.getElementById('xp').style.width=(p.xp/(p.lv*100)*100)+'%';
-}
-function loop(t){let dt=Math.min(.033,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}
-function bind(id,prop){const b=document.getElementById(id);b.onpointerdown=e=>{e.preventDefault();keys[prop]=true};b.onpointerup=b.onpointercancel=b.onpointerleave=e=>{keys[prop]=false}}
-bind('left','left');bind('rightBtn','right');
-document.getElementById('jump').onpointerdown=()=>{if(p.onGround){p.vy=-650;p.onGround=false}};
-document.getElementById('attack').onpointerdown=hit;
-addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;if(e.key==='ArrowRight'||e.key==='d')keys.right=true;if(e.key==='ArrowUp'||e.key==='w'||e.key===' ')if(p.onGround)p.vy=-650;if(e.key==='j'||e.key==='Enter')hit()});
-addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;if(e.key==='ArrowRight'||e.key==='d')keys.right=false});
-document.getElementById('play').onclick=()=>{started=true;document.getElementById('start').classList.add('hidden');say('Di chuyển và chém quái!')};
-resetMobs();p.y=H-132;requestAnimationFrame(loop);
-</script>
-</body></html>
+const C=document.getElementById('c'),g=C.getContext('2d');let key={},cam=0,started=false,qt=0;
+let p={x:150,y:405,vx:0,vy:0,hp:100,max:100,mp:80,maxmp:80,xp:0,lv:1,gold:0,atk:12,face:1,hit:0,inv:0,pots:3};
+let ms=[{x:450,y:405,hp:35,max:35,dead:0,t:0},{x:650,y:405,hp:45,max:45,dead:0,t:0},{x:830,y:405,hp:35,max:35,dead:0,t:0}];
+let b={x:1430,y:405,hp:260,max:260,dead:0,t:0},fx=[];
+function say(s){msg.textContent=s}function save(){localStorage.kh2d=JSON.stringify(p);say('💾 Đã lưu game');panel.style.display='none'}
+try{p={...p,...JSON.parse(localStorage.kh2d||'{}')}}catch(e){}
+function bg(){let q=g.createLinearGradient(0,0,0,540);q.addColorStop(0,'#7fb4d2');q.addColorStop(.6,'#b7d58a');q.addColorStop(1,'#6c984e');g.fillStyle=q;g.fillRect(0,0,960,540);
+g.fillStyle='#91bdd0';for(let i=0;i<8;i++)g.fillRect(i*180-cam*.15,180+(i%2)*12,120,80);
+g.fillStyle='#6d4d37';g.fillRect(0,470,960,70);for(let i=0;i<8;i++){let X=i*190-cam%190;g.fillStyle='#6d4d37';g.fillRect(X,430,135,18);g.fillStyle='#478447';g.fillRect(X,424,135,7)}
+g.fillStyle='#c99b67';g.fillRect(55-cam,345,155,125);g.fillStyle='#893e38';g.fillRect(40-cam,315,185,45);g.fillStyle='#f0d29a';g.fillRect(110-cam,385,35,85);
+g.fillStyle='#c99b67';g.fillRect(250-cam,380,110,90);g.fillStyle='#893e38';g.fillRect(235-cam,355,140,35);
+g.fillStyle='#55402f';g.fillRect(1020-cam,360,190,18);g.fillStyle='#478447';g.fillRect(1020-cam,354,190,7);g.fillStyle='#55402f';g.fillRect(1260-cam,430,160,18);g.fillStyle='#478447';g.fillRect(1260-cam,424,160,7);
+g.fillStyle='#222';g.font='bold 15px Arial';g.fillText('LÀNG',255-cam,300);g.fillText('KHU BOSS',1320-cam,390)}
+function hero(){let X=p.x-cam,Y=p.y;g.fillStyle='#0004';g.beginPath();g.ellipse(X,Y+40,22,7,0,0,7);g.fill();g.fillStyle='#303746';g.fillRect(X-11,Y+7,22,30);g.fillStyle='#e1ad86';g.beginPath();g.arc(X,Y,13,0,7);g.fill();g.fillStyle='#202531';g.fillRect(X-14,Y-16,28,8);g.fillStyle='#7d2020';g.fillRect(X-12,Y+12,24,8);g.strokeStyle='#eef4ff';g.lineWidth=5;g.beginPath();g.moveTo(X+p.face*9,Y+18);g.lineTo(X+p.face*(36+(p.hit?16:0)),Y-10);g.stroke()}
+function monster(m){if(m.dead)return;let X=m.x-cam;g.fillStyle='#0004';g.beginPath();g.ellipse(X,m.y+30,25,7,0,0,7);g.fill();g.fillStyle=m.t?'#303746':'#59a35a';g.beginPath();g.arc(X,m.y,m.t?20:25,Math.PI,0);g.lineTo(X+(m.t?20:25),m.y+25);g.lineTo(X-(m.t?20:25),m.y+25);g.fill();if(m.t){g.fillStyle='#e0ae88';g.beginPath();g.arc(X,m.y-25,13,0,7);g.fill()}g.fillStyle='#222';g.fillRect(X-25,m.y-52,50,5);g.fillStyle='#e33';g.fillRect(X-24,m.y-51,48*m.hp/m.max,3)}
+function boss(){if(b.dead)return;let X=b.x-cam;g.fillStyle='#0005';g.beginPath();g.ellipse(X,b.y+45,42,9,0,0,7);g.fill();g.fillStyle='#562d69';g.fillRect(X-32,b.y-20,64,60);g.fillStyle='#d5a17c';g.beginPath();g.arc(X,b.y-35,20,0,7);g.fill();g.fillStyle='#d3b23e';g.fillRect(X-27,b.y-55,54,10);g.fillStyle='#222';g.fillRect(X-55,b.y-72,110,8);g.fillStyle='#e33';g.fillRect(X-53,b.y-71,106*b.hp/b.max,6);g.fillStyle='white';g.font='bold 16px Arial';g.fillText('MA VƯƠNG',X-50,b.y-82)}
+function hit(){if(p.hit||p.inv)return;p.hit=10;ms.forEach(m=>{if(!m.dead&&Math.abs(m.x-p.x)<78){m.hp-=p.atk;if(m.hp<=0){m.dead=1;p.xp+=25;p.gold+=8;say('Hạ quái! +EXP +vàng')}}});if(!b.dead&&Math.abs(b.x-p.x)<95){b.hp-=p.atk*1.3;if(b.hp<=0){b.dead=1;p.xp+=200;p.gold+=200;say('🏆 HẠ GỤC MA VƯƠNG!')}}}
+function wave(){if(p.mp<15){say('Không đủ MP');return}p.mp-=15;fx.push({x:p.x+p.face*20,y:p.y,n:25});ms.forEach(m=>{if(!m.dead&&Math.abs(m.x-p.x)<160){m.hp-=p.atk*1.5;if(m.hp<=0){m.dead=1;p.xp+=25;p.gold+=8}}});if(!b.dead&&Math.abs(b.x-p.x)<180)b.hp-=p.atk*1.7}
+function dash(){if(p.mp<10)return;p.mp-=10;p.x+=p.face*120;p.inv=15}
+function upd(){if(start.style.display!=='none')return;let L=key.left||key.a,R=key.right||key.d;p.vx=(R?3:0)-(L?3:0);if(p.vx)p.face=p.vx>0?1:-1;if((key.jump||key.w)&&p.y>=405)p.vy=-9;p.vy+=.45;p.x+=p.vx;p.y+=p.vy;if(p.y>405){p.y=405;p.vy=0}p.x=Math.max(20,Math.min(1550,p.x));cam=Math.max(0,Math.min(650,p.x-300));if(p.hit)p.hit--;if(p.inv)p.inv--;if(p.mp<p.maxmp)p.mp+=.05;
+if(!b.dead&&p.x>1250&&Math.abs(b.x-p.x)<230){b.t++;if(b.t>80){p.hp-=10;b.t=0;say('Ma Vương phản công!')}}if(p.hp<=0){p.hp=p.max;p.x=150;say('Bạn đã bị đánh bại!')}if(p.xp>=100){p.xp-=100;p.lv++;p.max+=15;p.hp=p.max;p.atk+=4;say('✨ LÊN CẤP '+p.lv+'!')}if(qt===0&&p.x>350){qt=1;say('📜 Nhiệm vụ: hạ 3 quái')}if(qt===1&&ms.every(m=>m.dead)){qt=2;p.gold+=50;say('🎉 Nhiệm vụ hoàn thành +50 vàng')}fx.forEach(z=>z.n--);fx=fx.filter(z=>z.n>0)}
+function draw(){g.clearRect(0,0,960,540);bg();ms.forEach(monster);boss();hero();fx.forEach(z=>{g.fillStyle='#dceeff';g.beginPath();g.arc(z.x-cam,z.y,45-z.n,0,7);g.fill()});st.textContent=`Lv ${p.lv} • Kiếm khách • 💰 ${p.gold}`;hp.style.width=100*p.hp/p.max+'%';mp.style.width=100*p.mp/p.maxmp+'%';xp.style.width=p.xp+'%';plv.textContent=p.lv;gold.textContent=p.gold;atk.textContent=p.atk}
+function loop(){upd();draw();requestAnimationFrame(loop)}loop();
+document.querySelectorAll('[data-k]').forEach(q=>{q.onpointerdown=e=>{e.preventDefault();key[q.dataset.k]=1};q.onpointerup=()=>key[q.dataset.k]=0;q.onpointercancel=()=>key[q.dataset.k]=0});
+document.querySelectorAll('[data-s]').forEach(q=>q.onpointerdown=e=>{e.preventDefault();({atk:hit,wave:wave,dash:dash}[q.dataset.s])()});
+onkeydown=e=>{key[e.key.toLowerCase()]=1;if(e.key==='j')hit();if(e.key==='k')wave();if(e.key==='l')dash()};onkeyup=e=>key[e.key.toLowerCase()]=0;
+</script></body></html>

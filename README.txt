@@ -1,0 +1,1 @@
+Mở index.html để chơi. GitHub Pages: upload index.html ở thư mục gốc, Settings > Pages > main > /(root).
